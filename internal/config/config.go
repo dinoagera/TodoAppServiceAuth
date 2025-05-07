@@ -15,8 +15,8 @@ type Config struct {
 	JWTSecret   string `env:"JWT_SECRET" env-required:"true"`
 }
 type GRPC struct {
-	Port    string        `env:"GRPC_PORT" env-default:"8082"`
-	Timeout time.Duration `env:"GRPC_TIME_OUT"`
+	Port    string        `env:"GRPC_PORT_API_AUTH" env-default:"8082"`
+	Timeout time.Duration `env:"GRPC_TIME_OUT_API_AUTH"`
 }
 
 var cfg *Config

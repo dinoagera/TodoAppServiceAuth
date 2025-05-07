@@ -31,7 +31,7 @@ func New(log *slog.Logger, auth authgrpc.Auth, port string) *App {
 	}
 }
 func (a *App) Run() error {
-	l, err := net.Listen("tcp", a.Port)
+	l, err := net.Listen("tcp", fmt.Sprintf(":%s", a.Port))
 	if err != nil {
 		a.log.Debug("didnt start server.", "port:", a.Port, "err:", err.Error())
 		a.log.Info("didnt start server")

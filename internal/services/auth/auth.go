@@ -24,10 +24,10 @@ type Auth struct {
 	tokenTTL    time.Duration
 }
 type UserSaver interface {
-	SaveUser(ctx context.Context, username string, PassHash []byte) (int64, error)
+	SaveUser(ctx context.Context, email string, PassHash []byte) (int64, error)
 }
 type UserProvider interface {
-	User(ctx context.Context, username string) (models.User, error)
+	User(ctx context.Context, email string) (models.User, error)
 }
 
 func New(log *slog.Logger, usrSave UserSaver, usrProvider UserProvider, tokenTTL time.Duration) *Auth {
@@ -38,8 +38,8 @@ func New(log *slog.Logger, usrSave UserSaver, usrProvider UserProvider, tokenTTL
 		tokenTTL:    tokenTTL,
 	}
 }
-func (a *Auth) Login(ctx context.Context, username string, password string) (string, error) {
-	user, err := a.usrProvider.User(ctx, username)
+func (a *Auth) Login(ctx context.Context, email string, password string) (string, error) {
+	user, err := a.usrProvider.User(ctx, email)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
 			a.log.Warn("user not found", "err:", err.Error())
@@ -60,13 +60,13 @@ func (a *Auth) Login(ctx context.Context, username string, password string) (str
 	}
 	return token, nil
 }
-func (a *Auth) RegisterNewUser(ctx context.Context, username string, password string) (int64, error) {
+func (a *Auth) Register(ctx context.Context, email string, password string) (int64, error) {
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		a.log.Debug("failed to generate hash password")
 		return 0, fmt.Errorf("%w", err)
 	}
-	uid, err := a.usrSave.SaveUser(ctx, username, passHash)
+	uid, err := a.usrSave.SaveUser(ctx, email, passHash)
 	if err != nil {
 		a.log.Info("User is not registered")
 		return 0, fmt.Errorf("%w", err)

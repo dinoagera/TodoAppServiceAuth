@@ -30,16 +30,3 @@ func NewToken(user models.User, duration time.Duration) (string, error) {
 
 	return tokenString, nil
 }
-
-// func ParseToken(tokenString string) (*jwt.Token, error) {
-// 	secretKey := config.GetConfig().JWTSecret
-// 	if strings.Count(tokenString, ".") != 2 {
-// 		return nil, fmt.Errorf("invalid token format")
-// 	}
-// 	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-// 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-// 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-// 		}
-// 		return []byte(secretKey), nil
-// 	})
-// }

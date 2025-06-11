@@ -6,6 +6,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dinoagera/proto v0.0.5 h1:J8B4BQZedoUKB2zjn/1sxCtXAUlnHWxoT0+r1HHcZ5U=
 github.com/dinoagera/proto v0.0.5/go.mod h1:XoG3Fan82unU0bpvGMItwHxVYugqPuMxDlu+iJXcHWs=
+github.com/dinoagera/proto v0.0.6 h1:dwreoDYZs+Zo0P0EaI1EzazHBGMKJWkwC2FD6Tx2DFk=
+github.com/dinoagera/proto v0.0.6/go.mod h1:XoG3Fan82unU0bpvGMItwHxVYugqPuMxDlu+iJXcHWs=
 github.com/go-logr/logr v1.4.2 h1:6pFjapn8bFcIbiKo3XT4j/BhANplGihG6tvd+8rYgrY=
 github.com/go-logr/logr v1.4.2/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-logr/stdr v1.2.2 h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=

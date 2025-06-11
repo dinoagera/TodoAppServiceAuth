@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
+	"unicode/utf8"
 
 	"github.com/dinoagera/api-auth/internal/domain/models"
 	"github.com/dinoagera/api-auth/internal/lib/jwt"
@@ -15,6 +16,8 @@ import (
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrEmailRequired      = errors.New("email is required")
+	ErrPasswordTooShort   = errors.New("password must be at least 8 characters")
 )
 
 type Auth struct {
@@ -39,38 +42,68 @@ func New(log *slog.Logger, usrSave UserSaver, usrProvider UserProvider, tokenTTL
 	}
 }
 func (a *Auth) Login(ctx context.Context, email string, password string) (string, error) {
+	if err := validateCredentials(email, password); err != nil {
+		a.log.Warn("validation failed", "error", err)
+		return "", fmt.Errorf("%w", ErrInvalidCredentials)
+	}
+
 	user, err := a.usrProvider.User(ctx, email)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
-			a.log.Warn("user not found", "err:", err.Error())
+			a.log.Warn("user not found", "email", email)
 			return "", fmt.Errorf("%w", ErrInvalidCredentials)
 		}
-		a.log.Error("failed to get user", "err:", err.Error())
-		return "", fmt.Errorf("%w", ErrInvalidCredentials)
+		a.log.Error("failed to get user", "email", email, "error", err)
+		return "", fmt.Errorf("internal server error")
 	}
+
 	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
-		a.log.Info("invalid credentials", "err:", err.Error())
+		a.log.Info("invalid password", "email", email)
 		return "", fmt.Errorf("%w", ErrInvalidCredentials)
 	}
-	a.log.Info("User is login successufully")
+
 	token, err := jwt.NewToken(user, a.tokenTTL)
 	if err != nil {
-		a.log.Error("failed to generate token")
-		return "", fmt.Errorf("%w", err)
+		a.log.Error("failed to generate token", "email", email, "error", err)
+		return "", fmt.Errorf("failed to generate token")
 	}
+
+	a.log.Info("user logged in successfully", "email", email, "userID", user.ID)
 	return token, nil
 }
+
 func (a *Auth) Register(ctx context.Context, email string, password string) (int64, error) {
+	if err := validateCredentials(email, password); err != nil {
+		a.log.Warn("validation failed", "error", err)
+		return 0, err
+	}
+
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		a.log.Debug("failed to generate hash password")
-		return 0, fmt.Errorf("%w", err)
+		a.log.Error("failed to generate password hash", "error", err)
+		return 0, fmt.Errorf("failed to register user")
 	}
+
 	uid, err := a.usrSave.SaveUser(ctx, email, passHash)
 	if err != nil {
-		a.log.Info("User is not registered")
-		return 0, fmt.Errorf("%w", err)
+		if errors.Is(err, storage.ErrUserExists) {
+			a.log.Warn("user already exists", "email", email)
+			return 0, fmt.Errorf("user with this email already exists")
+		}
+		a.log.Error("failed to save user", "email", email, "error", err)
+		return 0, fmt.Errorf("failed to register user")
 	}
-	a.log.Info("User is register successufully")
+
+	a.log.Info("user registered successfully", "email", email, "userID", uid)
 	return uid, nil
+}
+
+func validateCredentials(email, password string) error {
+	if email == "" {
+		return ErrEmailRequired
+	}
+	if utf8.RuneCountInString(password) < 8 {
+		return ErrPasswordTooShort
+	}
+	return nil
 }

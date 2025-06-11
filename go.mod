@@ -3,7 +3,7 @@ module github.com/dinoagera/api-auth
 go 1.24.1
 
 require (
-	github.com/dinoagera/proto v0.0.5
+	github.com/dinoagera/proto v0.0.6
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgx/v5 v5.7.4

@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
@@ -41,17 +40,17 @@ func (s *Storage) SaveUser(ctx context.Context, email string, PassHash []byte) (
 }
 func (s *Storage) User(ctx context.Context, email string) (models.User, error) {
 	var user models.User
-	row, err := s.db.Query(ctx, "SELECT id, email, pass_hash FROM users WHERE email=$1", email)
+	err := s.db.QueryRow(
+		ctx,
+		"SELECT id, email, pass_hash FROM users WHERE email = $1",
+		email,
+	).Scan(&user.ID, &user.Email, &user.PassHash)
+
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return models.User{}, fmt.Errorf("%w", storage.ErrUserNotFound)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.User{}, storage.ErrUserNotFound
 		}
-		return models.User{}, fmt.Errorf("failed to login, err:%w", err)
-	}
-	defer row.Close()
-	err = row.Scan(&user.ID, &user.Email, &user.PassHash)
-	if err != nil {
-		return models.User{}, fmt.Errorf("failed to login, err:%w", err)
+		return models.User{}, fmt.Errorf("failed to get user: %w", err)
 	}
 	return user, nil
 }
